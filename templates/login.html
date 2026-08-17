@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% comment %} ==========================================================================
+   ログイン画面
+
+   ▼ HTMLとDjangoの対応関係(ここだけ押さえれば読める)
+     <input name="username">  ←→  Python側 request.POST.get("username")
+     この名前がズレると値が届かない。
+
+     action="{% url 'accounts:login' %}" … 送り先をURLの名前で指定
+     value="{{ username }}"              … 失敗時に入力を復元(Pythonから受け取る)
+
+   ★extends はファイルの1行目に書く決まりなので、このコメントはその下にある。
+========================================================================== {% endcomment %}
+
+{% block content %}
+
+<section class="auth-panel">
+  <h1>ログイン</h1>
+
+  <form method="post" action="{% url 'accounts:login' %}" class="stacked-form">
+    {% comment %} 整理券。フォームを送るときは必ずこの1行を入れる。
+       忘れると「CSRF verification failed」と出て送信できない。 {% endcomment %}
+    {% csrf_token %}
+
+    {% comment %} ログイン必須ページから飛ばされて来た場合、戻り先を持ち回す。
+       ログイン成功後にそのページへ戻す(処理は accounts/views.py)。 {% endcomment %}
+    <input type="hidden" name="next" value="{{ next }}" />
+
+    <div class="field">
+      <label for="username">ユーザー名</label>
+      <input
+        type="text"
+        id="username"
+        name="username"
+        value="{{ username }}"
+        required
+        autocomplete="username"
+        autofocus
+      />
+    </div>
+
+    <div class="field">
+      <label for="password">パスワード</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        required
+        autocomplete="current-password"
+      />
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block">ログイン</button>
+  </form>
+
+  <p class="auth-switch">
+    アカウントがまだない方は
+    <a href="{% url 'accounts:register' %}">新規登録</a>
+  </p>
+</section>
+
+{% endblock %}
