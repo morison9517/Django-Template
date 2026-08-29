@@ -2,16 +2,23 @@
 {% load static %}
 
 {% comment %} ==========================================================================
-   トップページ。base.html の型紙を受け継いで「中身だけ」書く。
+   デモページ(このファイルは自分たちのプロダクトには含まれません)
 
-   ▼ ★extends は必ずファイルの1行目に書く
+   ▼ このページが出ている理由
+     開発モードで、かつ main/urls.py にまだトップページ("")が無いから。
+     main/urls.py に path("", ...) を1行足した瞬間、この画面は自動で出なくなる。
+     消す作業は不要。本番モードでは最初から出ない。
+
+     いつでも見たいときは /__demo で開ける(開発モードのときだけ)。
+
+   ▼ 新しいページを作るときは、このファイルの書き方をまねる
+
+     ★extends は必ずファイルの1行目に書く
      上に何か書くとエラーになる。このコメントも extends より下にあるのはそのため。
      (コメントもDjangoから見ると「タグ」の一種なので、上には置けない)
 
-   ▼ extends したファイルでは、block の外側に書いたものは無視される。
+     extends したファイルでは、block の外側に書いたものは無視される。
      つまり中身は必ず {% block content %} の中に入れる。
-
-   ▼ 新しいページを作るときは、このファイルをコピーして中身を書き換えるのが早い。
 ========================================================================== {% endcomment %}
 
 {% block content %}
@@ -30,7 +37,7 @@
 
       <dt>データベース</dt>
       <dd>
-        {% comment %} db_status は main/views.py の index() から渡された値 {% endcomment %}
+        {% comment %} db_status は demo/views.py の index() から渡された値 {% endcomment %}
         {% if db_status == "ok" %}
         <span class="badge badge-ok">接続OK</span>
         {% else %}
@@ -99,12 +106,24 @@
       </tbody>
     </table>
   </article>
+
+  <article class="card">
+    <h2>ここから作りはじめる</h2>
+    <p class="note">この画面を消す作業はありません。下を書けば自動で入れ替わります。</p>
+    <ol class="step-list">
+      <li><code>templates/</code> にHTMLを1枚置く</li>
+      <li><code>main/views.py</code> にその画面を返す関数を書く</li>
+      <li><code>main/urls.py</code> の <code>path("", ...)</code> のコメントを外す</li>
+    </ol>
+    <p class="note">
+      デモをもう一度見たいときは <a href="/__demo">/__demo</a>(開発モードのときだけ開けます)。
+    </p>
+  </article>
 </section>
 
 {% comment %} ==========================================================================
    ここから下は、画面とサーバーのやり取りが通っているかを確かめるサンプル。
-   ページを切り替えずにデータだけをやり取りしている(相手は main/api.py)。
-   プロダクトが決まったら、この節ごと消して作り直す。
+   ページを切り替えずにデータだけをやり取りしている(相手は demo/api.py)。
 ========================================================================== {% endcomment %}
 <section class="card">
   <h2>動作確認用のサンプル(Todo)</h2>
@@ -134,5 +153,5 @@
    ★全ページ共通の処理は main.js、ページ固有の処理はこの形で分ける。
      こうしておくと、担当が違う人同士で同じファイルを触らずに済む。 {% endcomment %}
 {% block scripts %}
-<script src="{% static 'js/todo.js' %}"></script>
+<script src="{% static 'demo/todo.js' %}"></script>
 {% endblock %}

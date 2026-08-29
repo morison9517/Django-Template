@@ -31,6 +31,32 @@ docker compose exec web python manage.py createsuperuser
 
 ---
 
+## 最初に出るデモページについて
+
+起動して `/` を開くと「セットアップ完了 🎉」というデモページが出ます。
+**これは消さなくて大丈夫です。** Djangoの初期画面(The install worked successfully!)と同じ仕組みで、条件を満たすと自動で出なくなります。
+
+| | |
+| --- | --- |
+| 出る条件 | `DEBUG=True` **かつ** `main/urls.py` にまだ `path("", ...)` が無いとき |
+| 消える条件 | `main/urls.py` の `path("", ...)` を1行足す(それだけ) |
+| 本番 | `DJANGO_DEBUG=False` では最初から出ない。デモ用の表もDBに作られない |
+| あとで見たい | `/__demo` で開ける(開発モードのときだけ) |
+
+```python
+# main/urls.py のこの行のコメントを外した瞬間、デモは出なくなります
+urlpatterns = [
+    path("", views.index, name="index"),
+    ...
+]
+```
+
+Djangoは**上から順に照合して最初に一致したURLを使う**ので、`main` のほうが先に読み込まれていれば自動的にそちらが勝ちます。
+
+デモ一式は `demo/` にまとまっています。不要になったらフォルダごと削除して、`config/settings.py` と `config/urls.py` の「デモ」の各3行を消してください。
+
+---
+
 ## 使っている技術
 
 | 分類 | 技術 |
@@ -77,7 +103,7 @@ case_django/
 │   ├── urls.py             URLの振り分け(親)
 │   └── wsgi.py / asgi.py   本番サーバーとの接続口(触らない)
 │
-├── main/                   売り場①:画面とサンプルAPI
+├── main/                   売り場①:画面とAPI(★ここに書く)
 │   ├── models.py           データの形(DBの表)を決める
 │   ├── views.py            画面(HTML)を返す
 │   ├── api.py              JavaScript向けにデータだけ返す
@@ -89,6 +115,9 @@ case_django/
 ├── accounts/               売り場②:ログイン・新規登録
 │   ├── views.py
 │   └── urls.py
+│
+├── demo/                   売り場③:動作確認用のデモ(開発モード限定・触らない)
+│                           書き方の見本になっているので、コピー元として使える
 │
 ├── templates/              お客さんが見るHTML(base.html が共通の型紙)
 ├── static/                 CSS / JS / 画像

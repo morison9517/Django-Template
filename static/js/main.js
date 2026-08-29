@@ -6,7 +6,7 @@
      ページごとに別ファイルを作り、そのページのHTMLで読み込む:
 
        {% block scripts %}
-         <script src="{% static 'js/todo.js' %}"></script>
+         <script src="{% static 'js/mypage.js' %}"></script>
        {% endblock %}
 
    ▼ サーバー側との約束ごと(Django側の作りに合わせてある)

@@ -9,7 +9,7 @@
 #   実際のURLは、各アプリの urls.py に書く。
 #
 #       config/urls.py    … /auth/ で始まるものは accounts に任せる  ← このファイル
-#       main/urls.py      … / と /api/todos など
+#       main/urls.py      … / や /api/○○ など、自分たちで作るURL
 #       accounts/urls.py  … /auth/login など
 #
 #   全URLを1ファイルに書くと巨大になり、6人で編集したとき必ず衝突する。
@@ -41,3 +41,11 @@ if settings.AUTH_ENABLED:
         # 実際には "/auth/login" になる。
         path("auth/", include("accounts.urls")),
     ]
+
+# --- デモ(動作確認用のページ) ---
+# ★必ず最後に足す。
+#   Djangoは上から順に照合して最初に一致したものを使うので、
+#   main/urls.py に path("", ...) を書けば、そちらが勝ってデモは出なくなる。
+#   開発モードのときだけ。本番では登録しないので絶対に出ない。
+if settings.DEBUG:
+    urlpatterns += [path("", include("demo.urls"))]

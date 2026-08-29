@@ -61,9 +61,15 @@
   <body>
     <header class="site-header">
       <div class="container header-inner">
-        {% comment %} url 'main:index' = main/urls.py で name="index" を付けたURL。
-           "アプリ名:URL名" で指定する。URL文字列を直書きしない。 {% endcomment %}
-        <a class="site-title" href="{% url 'main:index' %}">{{ SITE_NAME }}</a>
+        {% comment %} ★ここだけURLを直書きしている理由
+           トップページは「デモ」と「自分たちのページ」で持ち主が入れ替わるので、
+           名前({% url %})で呼ぶと、持ち主が居ない間はエラーになる。
+           "/" という場所自体は変わらないので、ここはパスで書いておく。
+
+           トップ以外のページは {% url 'main:○○' %} のように名前で呼ぶこと。
+           URL文字列を直書きしなければ、後からURLを変えても呼び出し側を直さずに済む。
+        {% endcomment %}
+        <a class="site-title" href="/">{{ SITE_NAME }}</a>
 
         <nav class="site-nav">
           {% comment %} AUTH_ENABLED は .env の設定値。

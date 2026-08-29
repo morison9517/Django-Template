@@ -42,7 +42,7 @@ def register(request):
 
     # request.user = 今アクセスしている人。Djangoが自動で用意する。
     if request.user.is_authenticated:
-        return redirect("main:index")
+        return redirect("/")
 
     if request.method == "POST":
         # request.POST.get("username") の "username" は
@@ -93,7 +93,7 @@ def register(request):
 
         login(request, user)
         messages.success(request, f"ようこそ、{user.username} さん!")
-        return redirect("main:index")
+        return redirect("/")
 
     return render(request, "register.html", {"title": "新規登録"})
 
@@ -102,7 +102,7 @@ def login_view(request):
     """ユーザー名とパスワードを照合してログインさせる。"""
 
     if request.user.is_authenticated:
-        return redirect("main:index")
+        return redirect("/")
 
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
@@ -145,7 +145,7 @@ def logout_view(request):
     """ログアウトする。"""
     logout(request)
     messages.success(request, "ログアウトしました。")
-    return redirect("main:index")
+    return redirect("/")
 
 
 def _safe_next(request, target: str) -> str:

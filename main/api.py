@@ -12,19 +12,18 @@
 #
 # ▼ JavaScript側との対応
 #
-#   static/js/todo.js から呼ばれている。
-#   送受信の作法(整理券を付ける、エラーを拾う)は main.js の api がやるので、
-#   使う側は api.post("/api/todos/create", { title: "牛乳" }) と書くだけでよい。
+#   送受信の作法(整理券を付ける、エラーを拾う)は static/js/main.js の api が
+#   やってくれるので、JS側は api.post("/api/○○", { ... }) と書くだけでよい。
 #
-# ▼ 以下はサンプル。プロダクトが決まったら自分たちのAPIに書き換える。
+# ▼ ★動く見本
+#
+#   demo/api.py に一式(一覧・追加・切り替え・削除)があります。
+#   同じ形をここにコピーして、自分たちのデータ向けに直すのが速いです。
 # =============================================================================
 
 import json
 
 from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
-
-from main.models import Todo
 
 
 def json_response(data: dict, status: int = 200) -> JsonResponse:
@@ -39,78 +38,7 @@ def json_response(data: dict, status: int = 200) -> JsonResponse:
     return JsonResponse(data, status=status, json_dumps_params={"ensure_ascii": False})
 
 
-@require_http_methods(["GET"])
-def list_todos(request):
-    """一覧を返す。"""
-    # [:100] で取りすぎを防ぐ。
-    # ★上限が無いと、データが増えたときに画面が固まる。
-    todos = Todo.objects.all()[:100]
-
-    return json_response({"todos": [todo.to_dict() for todo in todos]})
-
-
-@require_http_methods(["POST"])
-def create_todo(request):
-    """1件追加する。"""
-    data, error = _read_json(request)
-    if error:
-        return error
-
-    title = str(data.get("title", "")).strip()
-
-    # ★入力チェックは必ずサーバー側でもやる。
-    #   画面側(HTMLのrequiredやJS)のチェックは、開発者ツールから素通りできる。
-    if not title:
-        return json_response({"error": "内容を入力してください。"}, status=400)
-    if len(title) > 200:
-        return json_response({"error": "200文字以内で入力してください。"}, status=400)
-
-    todo = Todo(title=title)
-
-    # ログインしていれば持ち主を記録する。していなければ持ち主なし。
-    # is_authenticated = ログイン中かどうか。Djangoが自動で判定してくれる。
-    if request.user.is_authenticated:
-        todo.user = request.user
-
-    # ★save() を呼んで初めてDBに書き込まれる。
-    todo.save()
-
-    # 201 = 「新しく作った」を表す返事。
-    return json_response({"todo": todo.to_dict()}, status=201)
-
-
-@require_http_methods(["PATCH"])
-def toggle_todo(request, todo_id: int):
-    """済み / 未済 を切り替える。
-
-    引数の todo_id は、urls.py で <int:todo_id> と書いた部分が入ってくる。
-    ★int を指定しているので、数字でないURLはここに届く前に404になる。
-    """
-    todo = Todo.objects.filter(pk=todo_id).first()
-    if todo is None:
-        return json_response({"error": "見つかりませんでした。"}, status=404)
-
-    todo.is_done = not todo.is_done
-
-    # update_fields を指定すると、その列だけを更新する(速く、事故も少ない)。
-    todo.save(update_fields=["is_done"])
-
-    return json_response({"todo": todo.to_dict()})
-
-
-@require_http_methods(["DELETE"])
-def delete_todo(request, todo_id: int):
-    """1件消す。"""
-    todo = Todo.objects.filter(pk=todo_id).first()
-    if todo is None:
-        return json_response({"error": "見つかりませんでした。"}, status=404)
-
-    todo.delete()
-
-    return json_response({"deleted": todo_id})
-
-
-def _read_json(request):
+def read_json(request):
     """送られてきたJSONを辞書にする。失敗したら返事も作って返す。
 
     (中身, None) か (None, エラーの返事) のどちらかが返る。
@@ -120,3 +48,16 @@ def _read_json(request):
         return json.loads(request.body), None
     except (ValueError, UnicodeDecodeError):
         return None, json_response({"error": "送信内容の形式が正しくありません。"}, status=400)
+
+
+# =============================================================================
+# ★ここから書きはじめる(URLの登録は main/urls.py)
+#
+#   @require_http_methods(["GET"])
+#   def list_posts(request):
+#       posts = Post.objects.all()[:100]   # ★上限を付けて取りすぎを防ぐ
+#       return json_response({"posts": [p.to_dict() for p in posts]})
+#
+#   ※ require_http_methods を使うときは、上の import に足すこと:
+#       from django.views.decorators.http import require_http_methods
+# =============================================================================

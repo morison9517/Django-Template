@@ -1,19 +1,20 @@
 /* ===========================================================================
-   todo.js = トップページだけで使うサンプル
+   todo.js = デモページだけで使うサンプル
 
-   ▼ 相手は main/api.py
-       GET    /api/todos              一覧
-       POST   /api/todos/create       追加   {"title": "..."}
-       PATCH  /api/todos/:id          完了の切り替え
-       DELETE /api/todos/:id/delete   削除
+   ★これは動作確認用です。自分たちのJSは static/js/ に置きます。
+     書き方の見本としてどうぞ。
 
-   ▼ 項目名(id / title / is_done)は main/models.py の
+   ▼ 相手は demo/api.py
+       GET    /__demo/api/todos              一覧
+       POST   /__demo/api/todos/create       追加   {"title": "..."}
+       PATCH  /__demo/api/todos/:id          完了の切り替え
+       DELETE /__demo/api/todos/:id/delete   削除
+
+   ▼ 項目名(id / title / is_done)は demo/models.py の
      to_dict() で決まっている。★ここを変えるときは両方直す。
 
    ▼ api.get / api.post / showMessage / withBusy は main.js の道具。
      整理券(CSRFトークン)は api が自動で付けるので、ここでは意識しない。
-
-   プロダクトが決まったら、このファイルは丸ごと消してよい。
    =========================================================================== */
 
 const form = document.getElementById("todo-form");
@@ -32,7 +33,7 @@ if (form && input && list) {
 
     await withBusy(form.querySelector("button"), async () => {
       try {
-        await api.post("/api/todos/create", { title });
+        await api.post("/__demo/api/todos/create", { title });
         input.value = "";
         await loadTodos();
       } catch (error) {
@@ -44,7 +45,7 @@ if (form && input && list) {
 
 async function loadTodos() {
   try {
-    const data = await api.get("/api/todos");
+    const data = await api.get("/__demo/api/todos");
     render(data.todos ?? []);
   } catch (error) {
     showMessage(error.message, "error");
@@ -91,7 +92,7 @@ function createItem(todo) {
 
 async function toggle(id) {
   try {
-    await api.patch(`/api/todos/${id}`);
+    await api.patch(`/__demo/api/todos/${id}`);
     await loadTodos();
   } catch (error) {
     showMessage(error.message, "error");
@@ -101,7 +102,7 @@ async function toggle(id) {
 async function remove(id, button) {
   await withBusy(button, async () => {
     try {
-      await api.delete(`/api/todos/${id}/delete`);
+      await api.delete(`/__demo/api/todos/${id}/delete`);
       await loadTodos();
     } catch (error) {
       showMessage(error.message, "error");

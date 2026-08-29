@@ -15,25 +15,19 @@
 #   → http://localhost:8000/admin/
 #
 # ▼ 新しいモデルを作ったら、ここに登録すると管理画面に出るようになる。
+#   書き方の見本は demo/admin.py にあります。
 # =============================================================================
 
-from django.contrib import admin
-
-from main.models import Todo
+from django.contrib import admin  # noqa: F401
 
 
-@admin.register(Todo)
-class TodoAdmin(admin.ModelAdmin):
-    """Todoを管理画面で扱うときの見せ方。"""
-
-    # 一覧に並べる列。書かないと文字が1列出るだけで見づらい。
-    list_display = ("id", "title", "is_done", "user", "created_at")
-
-    # 右側に出る絞り込み。
-    list_filter = ("is_done", "created_at")
-
-    # 上に出る検索窓。ここに書いた項目が検索対象になる。
-    search_fields = ("title",)
-
-    # 一覧の画面から直接チェックを付け外しできるようにする。
-    list_editable = ("is_done",)
+# =============================================================================
+# ★ここから書きはじめる
+#
+#   from main.models import Post
+#
+#   @admin.register(Post)
+#   class PostAdmin(admin.ModelAdmin):
+#       list_display = ("id", "title", "created_at")   # 一覧に並べる列
+#       search_fields = ("title",)                     # 上に出る検索窓
+# =============================================================================
