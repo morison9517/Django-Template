@@ -22,6 +22,7 @@
 # =============================================================================
 
 from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
@@ -41,6 +42,13 @@ if settings.AUTH_ENABLED:
         # 実際には "/auth/login" になる。
         path("auth/", include("accounts.urls")),
     ]
+
+# --- 利用者が上げたファイル(プロフィールアイコンなど) ---
+# ★開発モードのときだけ、Djangoが自分で画像を配る。
+#   本番ではNginxが配るので、ここは登録しない(compose.prod.yml 参照)。
+#   Djangoに画像配りをさせると遅いうえ、本番では動かないようになっている。
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # --- デモ(動作確認用のページ) ---
 # ★必ず最後に足す。

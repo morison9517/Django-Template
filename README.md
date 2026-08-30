@@ -297,3 +297,5 @@ base.html(型紙)                    index.html(中身)
 ## ドキュメント
 
 - **[docs/SETUP.md](docs/SETUP.md)** — 環境構築、日々の操作、DBeaverでの接続、困ったときの対処
+- **[docs/Pyhelp.md](docs/Pyhelp.md)** — Pythonの書き方(Java・PHPをやった人向けの早わかり)
+- **[docs/DEPLOY.md](docs/DEPLOY.md)** — 本番に出す手順(AWS・HTTPS・困ったときの対処)

@@ -251,8 +251,20 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
 # =============================================================================
-# アップロード
+# アップロード(プロフィールアイコンなど、利用者が上げたファイル)
 # =============================================================================
+
+# ▼ static と media の違い(ここを混同すると本番で画像が出ない)
+#
+#   static … 自分たちが用意したファイル(CSS・JS・ロゴ)。Gitに入れる。
+#   media  … 利用者が後から上げたファイル(プロフィールアイコン)。Gitに入れない。
+#
+#   置き場所を分けるのは、本番で扱いが違うから。
+#   static は箱を作り直せば元通りだが、media は消したら二度と戻らない。
+#   だから本番では media だけを箱の外の保管庫に置く(compose.prod.yml 参照)。
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # 上限を決めておかないと、巨大ファイルでサーバーが落ちる。
 DATA_UPLOAD_MAX_MEMORY_SIZE = 16 * 1024 * 1024  # 16MB
@@ -264,10 +276,24 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 16 * 1024 * 1024
 # =============================================================================
 
 if not DEBUG:
-    SESSION_COOKIE_SECURE = True  # HTTPSでのみCookieを送る
-    CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True  # JavaScriptから読めないようにする
     SESSION_COOKIE_SAMESITE = "Lax"  # 他サイトから勝手に使われるのを防ぐ
 
     # NginxをHTTPSの窓口にする場合、Djangoに「元はHTTPSだった」と伝える。
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+    # ▼ ★ここが本番でいちばんハマる設定
+    #
+    #   True にすると「HTTPSのときだけログイン状態を持ち歩く」という意味になる。
+    #   本番は必ずHTTPSにするので True が正解。
+    #
+    #   ★ただし、まだHTTPSにしていない状態(http:// のまま)で True にすると、
+    #     ログイン自体は成功しているのに、次のページで必ずログイン画面に
+    #     戻されます。エラーも出ないので原因がまず分かりません。
+    #     「ログインできない」と思ったら、まずここを疑ってください。
+    #
+    #   デプロイの練習でHTTPのまま動かすときだけ、.env に
+    #       DJANGO_SECURE_COOKIES=False
+    #   と書いて一時的に切ってください。★HTTPSにしたら必ず True に戻すこと。
+    SESSION_COOKIE_SECURE = _env_bool("DJANGO_SECURE_COOKIES", True)
+    CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
