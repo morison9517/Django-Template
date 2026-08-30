@@ -25,6 +25,11 @@ def index(request):
             "title": "セットアップ確認",
             "db_status": db_status,
             "db_message": db_message,
+            # ★真偽値だけを渡している(利用者そのものは渡さない)。
+            #   画面に名前を出すと user.username を読むことになり、チームが
+            #   Userの項目名を変えた日にデモの表示が欠ける。
+            #   「ログイン中か」だけならDjangoの機能なので絶対に壊れない。
+            "logged_in": request.user.is_authenticated,
         },
     )
 

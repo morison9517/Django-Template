@@ -15,7 +15,7 @@
 #
 # ▼ JavaScript側との対応
 #
-#   demo/static/demo/todo.js から呼ばれている。
+#   demo/templates/demo/index.html の中のJSから呼ばれている。
 #   送受信の作法(整理券を付ける、エラーを拾う)は main.js の api がやるので、
 #   使う側は api.post("/__demo/api/todos/create", { title: "牛乳" }) と書くだけでよい。
 # =============================================================================
@@ -66,12 +66,9 @@ def create_todo(request):
     if len(title) > 200:
         return json_response({"error": "200文字以内で入力してください。"}, status=400)
 
+    # ★デモのTodoは持ち主を持たない(本番のUserに紐付けない)。
+    #   理由は demo/models.py のコメント参照。紐付けの書き方も同じ場所に見本がある。
     todo = Todo(title=title)
-
-    # ログインしていれば持ち主を記録する。していなければ持ち主なし。
-    # is_authenticated = ログイン中かどうか。Djangoが自動で判定してくれる。
-    if request.user.is_authenticated:
-        todo.user = request.user
 
     # ★save() を呼んで初めてDBに書き込まれる。
     todo.save()

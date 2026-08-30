@@ -14,7 +14,7 @@ class TodoAdmin(admin.ModelAdmin):
     """Todoを管理画面で扱うときの見せ方。"""
 
     # 一覧に並べる列。書かないと文字が1列出るだけで見づらい。
-    list_display = ("id", "title", "is_done", "user", "created_at")
+    list_display = ("id", "title", "is_done", "created_at")
 
     # 右側に出る絞り込み。
     list_filter = ("is_done", "created_at")

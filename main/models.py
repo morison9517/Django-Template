@@ -23,10 +23,6 @@
 #   実行方法は docs/SETUP.md にある。これを忘れると
 #   「コードは直したのにDBが古いまま」でエラーになる。
 #
-# ▼ 書き方の見本
-#
-#   demo/models.py にサンプル(Todo)があります。
-#   ForeignKey(持ち主の紐付け)や Meta(並び順)の書き方はそちらを参照。
 # =============================================================================
 
 from django.db import models  # noqa: F401
@@ -35,11 +31,36 @@ from django.db import models  # noqa: F401
 # =============================================================================
 # ★ここから書きはじめる
 #
+#   from django.conf import settings
+#
 #   class Post(models.Model):
 #       title = models.CharField(max_length=200)
 #       body = models.TextField(blank=True)
+#
+#       # ▼ 他の表と紐付けたいとき(「この投稿は誰が書いたか」)
+#       #
+#       #   settings.AUTH_USER_MODEL … ユーザーの表を指す決まった書き方。
+#       #                              User を直接書かない(後で差し替えられるように)
+#       #   on_delete=CASCADE        … ユーザーが消えたら、その人の投稿も一緒に消す
+#       #   null=True, blank=True    … 持ち主なしでも保存できる
+#       #                              (ログイン機能をOFFにしても動く)
+#       #   related_name             … 逆に user.posts で一覧が取れるようになる
+#       user = models.ForeignKey(
+#           settings.AUTH_USER_MODEL,
+#           on_delete=models.CASCADE,
+#           null=True,
+#           blank=True,
+#           related_name="posts",
+#       )
+#
 #       created_at = models.DateTimeField(auto_now_add=True)
 #
+#       class Meta:
+#           # 取り出すときの並び順。"-" を付けると新しい順。
+#           # ★ここで決めておくと、取得のたびに並び替えを書かなくて済む。
+#           ordering = ["-id"]
+#
 #       def __str__(self) -> str:
+#           """管理画面などで1件を表す文字。これが無いと「Post object (1)」と出る。"""
 #           return self.title
 # =============================================================================
