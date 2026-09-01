@@ -49,6 +49,10 @@ media/*
 .pytest_cache/
 .mypy_cache/
 
+# tools/strip_comments.py が消す前に取っておく写し。
+# 各自の手元でしか意味がないので上げない。
+tools/.comment_backup/
+
 # --- エディタ / OS ---
 # .vscode は「原則除外 → 共有したい2つだけ ! で戻す」形にしている。
 # launch.json などには個人のパスが入るため、まとめて除外するのが安全。

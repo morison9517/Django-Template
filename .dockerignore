@@ -30,6 +30,9 @@ media/
 .pytest_cache/
 .mypy_cache/
 
+# コメントを消す道具が取る写し(箱の中では不要)。
+tools/.comment_backup/
+
 # --- エディタ / OS ---
 .vscode/
 .idea/

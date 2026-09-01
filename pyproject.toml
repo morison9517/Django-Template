@@ -46,7 +46,9 @@ target-version = "py313"
 #   migrations … Djangoが自動生成するファイル(手で直さない)
 #   *.md        … ruffは説明文の中のコード例まで整形してしまい、
 #                 手順書の書き方が勝手に変わってしまうため除外する
-extend-exclude = ["*/migrations/*", "*.md"]
+#   .comment_backup … tools/strip_comments.py が取る写し(同じ中身が2つ出て
+#                 エラーも2回表示されるため除外する)
+extend-exclude = ["*/migrations/*", "*.md", "tools/.comment_backup"]
 
 [tool.ruff.lint]
 # E,F=基本的な間違い / I=importの並び順 / UP=古い書き方

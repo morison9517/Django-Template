@@ -23,7 +23,6 @@
 from django.http import JsonResponse
 from django.shortcuts import render  # noqa: F401
 
-
 # =============================================================================
 # ★ここから書きはじめる(URLの登録は main/urls.py)
 #

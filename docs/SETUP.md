@@ -141,6 +141,33 @@ docker compose exec web bash
 
 箱の中のターミナルに入ります。出るときは `exit` です。
 
+### コメントが多くて読みにくいとき(チーム開発時非推奨)
+
+このテンプレートは覚えるための解説を厚く書いてあります。慣れてきて邪魔になったら、**自分の手元だけ**まとめて消せます。
+
+### チーム開発時は使用非推奨とします。
+チーム開発で使用する際は、**必ず最初に誰か一人がcloneしたときに実行**し、その直後に再度commit/pushするようにしてください。(ほぼすべての作業するファイルに変更が加わるため。)
+
+```bash
+# ① まず何行消えるか見るだけ(ファイルは変わりません)
+docker compose exec web python tools/strip_comments.py --dry-run
+
+# ② 実際に消す
+docker compose exec web python tools/strip_comments.py
+
+# ③ 元に戻す
+docker compose exec web python tools/strip_comments.py --restore
+```
+
+消えるのは解説だけです。手順書(`docs/`)、`.env.example`、`# noqa` のような**道具への指示**は残ります。
+
+> **★消した状態を commit / push しないでください。**
+>
+> コメントを消すと、そのファイルはGitから見て「全行が変わった」扱いになります。
+> 1人がpushすると、残りの5人は自分の作業と**全ファイルで衝突**します。
+> commitする前に `--restore` で戻してください。
+> (未コミットの変更があるときは、混ざらないように実行を止めるようにしてあります)
+
 ---
 
 ## 3. データベースの操作
@@ -389,6 +416,8 @@ VSCodeは自分のPC側で動いているため、箱の中の部品が見えて
 | 対話画面でDBを触る | `docker compose exec web python manage.py shell` |
 | 設定の問題を調べる | `docker compose exec web python manage.py check` |
 | 書き方をチェック | `docker compose exec web ruff check .` |
+| コメントを消す(手元だけ) | `docker compose exec web python tools/strip_comments.py` |
+| 消したコメントを戻す | `docker compose exec web python tools/strip_comments.py --restore` |
 | 箱の中に入る | `docker compose exec web bash` |
 
 ---
