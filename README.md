@@ -70,7 +70,8 @@ Djangoは**上から順に照合して最初に一致したURLを使う**ので�
 | バック | Python 3.13 / Django 5.2(LTS) |
 | DB | MySQL 8.4(確認は DBeaver、ポートは **3309**) |
 | 環境 | Docker Compose |
-| 本番 | Nginx / AWS / gunicorn |
+| 本番 | Nginx / gunicorn / AWS(**`compose.prod.yml` に構成済み**) |
+| 画像 | Pillow(`ImageField` を使えるように最初から入れてある) |
 | 部品管理 | uv |
 
 > Django 5.2 は **LTS(長期サポート版)** です。最新版より解説記事が多く、
@@ -127,10 +128,14 @@ case_django/
 ├── templates/              お客さんが見るHTML(base.html が共通の型紙)
 ├── static/                 CSS / JS / 画像
 │
-├── docs/                   チームで見る手順書
+├── media/                  利用者が上げたファイル(★中身はGitHubに上げない)
+│
+├── docs/                   チームで見る手順書(SETUP / Pyhelp / DEPLOY)
 ├── tools/                  開発中だけ使う小道具スクリプト
 │
-├── compose.yml             アプリとDBをまとめて動かす段取り表
+├── compose.yml             アプリとDBをまとめて動かす段取り表(開発用)
+├── compose.prod.yml        本番用の段取り表(★開発中は使わない)
+├── docker/nginx/           本番でCSSと画像を配るNginxの設定
 ├── Dockerfile              箱を組み立てるレシピ
 ├── pyproject.toml          買い物リスト(必要な部品の一覧)
 ├── uv.lock                 レシート(全員が同じバージョンを使うための記録)
@@ -169,7 +174,7 @@ case_django/
 
 ## ページを1枚増やす手順
 
-1. **`templates/` にHTMLを1枚置く**(`index.html` をコピーするのが早い)
+1. **`templates/` にHTMLを1枚置く**(`login.html` をコピーするのが早い)
 
    ```html
    {% extends "base.html" %}
@@ -285,10 +290,11 @@ base.html(型紙)                    index.html(中身)
 | ログイン | `auth/routes.py` | `handlers/auth.go` | `accounts/views.py` |
 | 型紙 | `base.html`(Jinja) | `base.html`(Go) | `base.html`(Django) |
 | 表を作る | `flask init-db` | 起動時に自動 | 起動時に自動 |
-| 表の形を変える | 作り直し(データ消滅) | 作り直し(データ消滅) | **データを保ったまま変更可** |
+| 表の形を変える | 作り直し(データ消滅) | 列の追加のみ可 | **データを保ったまま変更可** |
 | 管理画面 | 無い | 無い | **`/admin/`** |
 | アプリのポート | 5000 | 8080 | 8000 |
 | DBのポート | 3307 | 3308 | 3309 |
+| 本番イメージ | 438MB | **48MB** | 913MB |
 
 > ポートをずらしてあるので、**3つ同時に起動しても衝突しません。**
 
@@ -297,5 +303,5 @@ base.html(型紙)                    index.html(中身)
 ## ドキュメント
 
 - **[docs/SETUP.md](docs/SETUP.md)** — 環境構築、日々の操作、DBeaverでの接続、困ったときの対処
-- **[docs/Pyhelp.md](docs/Pyhelp.md)** — Pythonの書き方(Java・PHPをやった人向けの早わかり)
+- **[docs/Pyhelp.md](docs/Pyhelp.md)** — Pythonの書き方(コーディング経験者向けの早わかり)
 - **[docs/DEPLOY.md](docs/DEPLOY.md)** — 本番に出す手順(AWS・HTTPS・困ったときの対処)
