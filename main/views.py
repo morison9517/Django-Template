@@ -8,33 +8,23 @@
 #   この「受付の関数」を、Djangoではビュー(view)と呼ぶ。
 #   FlaskやGinでいう「ルートの処理」と同じもの。
 #
-# ▼ 引数の request について
+# ▼ 引数の request
 #
-#   誰がどのページに何を送ってきたか、という情報が全部入っている。
-#   ★書かないとエラーになるので、必ず1つ目に書く。
+#   誰が何を送ってきたかが全部入っている。★必ず1つ目に書く。
 #       request.POST["username"] … 送信されたフォームの中身
 #       request.user             … 今アクセスしている人
 #
-# ▼ ★書き方の見本
-#
-#   demo/views.py に、HTMLへ値を渡すサンプルがあります。
+#   書き方の見本は demo/views.py にある。
 # =============================================================================
 
 from django.http import JsonResponse
 from django.shortcuts import render  # noqa: F401
 
-# =============================================================================
 # ★ここから書きはじめる(URLの登録は main/urls.py)
 #
 #   def index(request):
-#       """トップページ。
-#
-#       render(request, "index.html", {...}) =
-#           templates/index.html を読んで、完成したHTMLを返す。
-#       3つ目の辞書がHTML側への差し込み情報で、HTML内の {{ title }} に入る。
-#       """
+#       # 3つ目の辞書がHTML側への差し込み情報。HTML内の {{ title }} に入る。
 #       return render(request, "index.html", {"title": "ホーム"})
-# =============================================================================
 
 
 def health(request):

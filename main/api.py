@@ -50,14 +50,9 @@ def read_json(request):
         return None, json_response({"error": "送信内容の形式が正しくありません。"}, status=400)
 
 
-# =============================================================================
 # ★ここから書きはじめる(URLの登録は main/urls.py)
 #
 #   @require_http_methods(["GET"])
 #   def list_posts(request):
 #       posts = Post.objects.all()[:100]   # ★上限を付けて取りすぎを防ぐ
 #       return json_response({"posts": [p.to_dict() for p in posts]})
-#
-#   ※ require_http_methods を使うときは、上の import に足すこと:
-#       from django.views.decorators.http import require_http_methods
-# =============================================================================

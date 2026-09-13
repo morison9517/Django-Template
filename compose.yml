@@ -42,12 +42,10 @@ services:
     ports:
       # "自分のPC側:箱の中側"
       #
-      # ★左を 3309 にしている理由
-      #   PCに既にMySQLが入っていたり、Flask版・Gin版のDBを動かしていると
-      #   番号がぶつかって起動できないため、ずらしている。
-      #
-      # ★DBeaverから接続するときはこの 3309 を使う(接続情報は docs/SETUP.md)。
-      #   アプリがDBに繋ぐのにこの設定は不要(下の DB_HOST の解説参照)。
+      # ★左を 3309 にしているのは、PCのMySQLや他のテンプレートのDBと
+      #   番号がぶつからないようにするため。
+      # ★DBeaverから繋ぐときはこの 3309 を使う(接続情報は docs/SETUP.md)。
+      #   アプリがDBに繋ぐのにこの設定は不要(下の DB_HOST 参照)。
       - "3309:3306"
 
     volumes:
@@ -90,13 +88,9 @@ services:
       #   Dockerがサービス名の電話帳を自動で作るので、IPやポートは不要。
       DB_HOST: db
 
-    # ★起動時にやることを2段階で指定している
-    #
-    #   1. migrate    … models.py の内容どおりにDBの表を用意する
-    #   2. runserver  … アプリを起動する
-    #
-    #   毎回 migrate を実行しているので、「表を作るコマンド」を
-    #   手で打つ必要がない。既にある表はそのままなのでデータは消えない。
+    # ★起動時に migrate → runserver の順で実行する。
+    #   毎回 migrate するので「表を作るコマンド」を手で打つ必要がない。
+    #   既にある表はそのままなのでデータは消えない。
     command: >
       sh -c "python manage.py migrate --noinput &&
              python manage.py runserver 0.0.0.0:8000"

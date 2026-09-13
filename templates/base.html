@@ -1,38 +1,15 @@
-{% comment %} ==========================================================================
-   base.html = 全ページ共通の「型紙」
+{% comment %}
+  base.html = 全ページ共通の型紙。ヘッダー・フッター・CSSの読み込みをここにまとめている。
 
-   ▼ Djangoのテンプレートの仕組み
-     ここに書いたヘッダー・フッター・CSS読み込みを、各ページが受け継ぐ。
-     各ページは「真ん中の中身だけ」を書けばよく、ヘッダーの重複がなくなる。
-     ヘッダーを直したいときは、このファイル1枚を直せば全ページに反映される。
+  穴(block)は3つ。各ページは同じ名前の block を書くと、その中身がここに入る。
+    head_extra … そのページ専用のCSS
+    content    … ページの本体(必須)
+    scripts    … そのページ専用のJS
 
-   ▼ {% block 名前 %}{% endblock %} = 型紙に空けた「穴」
-     各ページが同じ名前の block を書くと、その中身がここに差し込まれる。
-     このファイルにある穴は3つ:
-         head_extra … そのページ専用のCSSを足したいとき
-         content    … ページの本体(必須)
-         scripts    … そのページ専用のJSを足したいとき
-     block の中に書いたものが「初期値」になり、
-     ページ側が同名の block を書かなければ初期値がそのまま出る。
-
-   ▼ カッコの使い分け
-     {{  }} … 値を表示する        例:{{ title }}
-     {%  %} … 命令(if / for など)
-     {% comment %} … コメント(HTMLにも出力されない)← いま読んでいるこれ
-
-   ★1行だけのコメントは {# ... #} でも書けるが、
-     複数行にまたがるときは必ず {% comment %} を使うこと。
-     {# #} は1行用なので、途中で改行すると残りがそのまま画面に出てしまう。
-
-   ▼ ★渡していない情報は「空」になる(エラーにならない)
-     {{ title }} のように書いても、views.py から渡していなければ
-     何も表示されないだけで、エラーは出ない。
-     「画面に出ない」ときは、まず views.py の render(...) に
-     その名前を書いたかを確認する。
-
-     ただし {{ user }} と {{ messages }} と {{ SITE_NAME }} は例外で、
-     毎回渡さなくても全ページで使える(設定は main/context_processors.py)。
-========================================================================== {% endcomment %}
+  サイト名・説明文と、検索・SNS向けの値は main/context_processors.py が用意している。
+  ★渡していない値は空になるだけでエラーが出ない。「出ない」ときはまずそこを疑う。
+  ★{{ user }} {{ messages }} {{ SITE_NAME }} は毎回渡さなくても全ページで使える。
+{% endcomment %}
 
 {% load static %}
 <!DOCTYPE html>
@@ -40,19 +17,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    {% comment %} JavaScriptから送信するときにも整理券(CSRFトークン)が必要なので、
-       ここに置いてJS側から読み取れるようにしている(仕掛けは main.js)。 {% endcomment %}
     <meta name="csrf-token" content="{{ csrf_token }}" />
 
-    {% comment %} 各ページから title を渡せば「ホーム | Django Template Demo」になり、
-       渡さなければサイト名だけになる。 {% endcomment %}
     <title>{% if title %}{{ title }} | {% endif %}{{ SITE_NAME }}</title>
 
-    {% comment %} ▼ static を使う理由
-       "/static/css/style.css" と直書きしても動くが、static を使えば
-       Djangoが正しいパスを組み立てるので、公開場所が変わっても直さずに済む。
-       ★使う前に、ファイルの先頭で「load static」が必要(上に書いてある)。 {% endcomment %}
+    {% firstof description SITE_DESCRIPTION as page_description %}
+
+    <meta name="description" content="{{ page_description }}" />
+    <link rel="canonical" href="{{ canonical_url }}" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="{{ SITE_NAME }}" />
+    <meta property="og:title" content="{% if title %}{{ title }} | {% endif %}{{ SITE_NAME }}" />
+    <meta property="og:description" content="{{ page_description }}" />
+    <meta property="og:url" content="{{ canonical_url }}" />
+    <meta property="og:locale" content="ja_JP" />
+
+    {% if OGP_IMAGE %}
+    <meta property="og:image" content="{{ site_url }}{{ OGP_IMAGE }}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    {% endif %}
+
+    <link rel="icon" href="/favicon.ico" />
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
 
     {% block head_extra %}{% endblock %}
@@ -61,26 +47,12 @@
   <body>
     <header class="site-header">
       <div class="container header-inner">
-        {% comment %} ★ここだけURLを直書きしている理由
-           トップページは「デモ」と「自分たちのページ」で持ち主が入れ替わるので、
-           名前({% url %})で呼ぶと、持ち主が居ない間はエラーになる。
-           "/" という場所自体は変わらないので、ここはパスで書いておく。
-
-           トップ以外のページは {% url 'main:○○' %} のように名前で呼ぶこと。
-           URL文字列を直書きしなければ、後からURLを変えても呼び出し側を直さずに済む。
-        {% endcomment %}
         <a class="site-title" href="/">{{ SITE_NAME }}</a>
 
         <nav class="site-nav">
-          {% comment %} AUTH_ENABLED は .env の設定値。
-             ログイン機能をOFFにしたときにリンクが壊れないようにしている。
-
-             user = 今アクセスしている人。Djangoが全ページで自動的に
-             使えるようにしてくれるので、views.py から渡す必要はない。 {% endcomment %}
           {% if AUTH_ENABLED %} {% if user.is_authenticated %}
           <span class="nav-user">{{ user.username }} さん</span>
 
-          {% comment %} ログアウトはPOST(理由は accounts/urls.py のコメント参照) {% endcomment %}
           <form action="{% url 'accounts:logout' %}" method="post" class="inline-form">
             {% csrf_token %}
             <button type="submit" class="btn btn-ghost">ログアウト</button>
@@ -93,10 +65,6 @@
       </div>
     </header>
 
-    {% comment %} ▼ メッセージの表示場所(全ページ共通なのでここに1回だけ書く)
-       Pythonで messages.success(request, "保存しました") と書いたものが取り出される。
-       message.tags("success"/"error"/"warning"/"info")をCSSのクラス名にして色を変えている。
-       各ページで「保存できました」の表示を自作する必要はない。 {% endcomment %}
     <div class="container">
       {% if messages %}
       <ul class="flash-list">
@@ -107,7 +75,6 @@
       {% endif %}
     </div>
 
-    {% comment %} 各ページの中身がここに入る {% endcomment %}
     <main class="container">{% block content %}{% endblock %}</main>
 
     <footer class="site-footer">

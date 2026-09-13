@@ -115,17 +115,22 @@ case_django/
 │   ├── api.py              JavaScript向けにデータだけ返す
 │   ├── urls.py             このアプリが担当するURL
 │   ├── admin.py            管理画面での見せ方
-│   ├── context_processors.py  全ページで使う共通の情報
+│   ├── context_processors.py  全ページで使う共通の情報(サイト名・説明文)
+│   ├── errors.py           エラー画面(404など)。文言の表はここ
 │   └── migrations/         DBの変更履歴(★必ずコミットする)
 │
 ├── accounts/               売り場②:ログイン・新規登録
 │   ├── views.py
-│   └── urls.py
+│   ├── urls.py
+│   ├── models.py           ログインの失敗を数えておく表
+│   ├── loginlimit.py       失敗回数を数えて締め出す
+│   └── migrations/         DBの変更履歴(★必ずコミットする)
 │
 ├── demo/                   売り場③:動作確認用のデモ(開発モード限定・触らない)
 │                           1枚完結なので、書き方の見本は login.html を見ること
 │
 ├── templates/              お客さんが見るHTML(base.html が共通の型紙)
+│                           error.html(404など)と robots.txt もここ
 ├── static/                 CSS / JS / 画像
 │
 ├── media/                  利用者が上げたファイル(★中身はGitHubに上げない)
@@ -135,7 +140,10 @@ case_django/
 │
 ├── compose.yml             アプリとDBをまとめて動かす段取り表(開発用)
 ├── compose.prod.yml        本番用の段取り表(★開発中は使わない)
-├── docker/nginx/           本番でCSSと画像を配るNginxの設定
+├── docker/nginx/           本番のNginxの設定(3枚)
+│   ├── app.inc               中身の設定。下の2枚から読み込む1枚
+│   ├── prod.conf             HTTPのまま動かすとき(最初はこちら)
+│   └── prod-https.conf       証明書を取った後
 ├── Dockerfile              箱を組み立てるレシピ
 ├── pyproject.toml          買い物リスト(必要な部品の一覧)
 ├── uv.lock                 レシート(全員が同じバージョンを使うための記録)
@@ -167,6 +175,8 @@ case_django/
 | URLと処理(画面) | `main/views.py` `main/urls.py` |
 | URLと処理(データ) | `main/api.py` |
 | ログイン | `accounts/` |
+| エラーページの文言 | `main/errors.py` |
+| サイト名・説明文 | `main/context_processors.py` |
 
 `config/` `compose.yml` `Dockerfile` は**土台**です。
 触る必要が出たら、**先にチームに共有してから**変更してください(全員に影響します)。
@@ -278,6 +288,23 @@ base.html(型紙)                    index.html(中身)
 
 ---
 
+## 公開するときに要るものは、入れてあります
+
+**身内に見せるだけなら要らないが、外に出すと必ず要るもの**を最初から入れてあります。
+どれも**設定しなくても動き**、**要らなければファイルを消せば外れます。**
+
+| 入っているもの | 設定しないとどうなるか | いじる場所 |
+| --- | --- | --- |
+| **エラーページ**(404/500) | そのまま使える | 文言の表1つ(`main/errors.py`) |
+| **ログイン試行制限** | そのまま使える(5回失敗で15分) | 回数と時間の定数(`accounts/loginlimit.py`) |
+| **検索・SNSでの見え方** | そのまま使える。説明文は書き換える | サイト名と説明文(`main/context_processors.py`) |
+| **HTTPS** | HTTPで動く。設定は用意済み | 設定を1行差し替え([docs/DEPLOY.md](docs/DEPLOY.md)) |
+
+> エラーページは `/__error/404` で確認できます(**本番では登録されません**)。
+> 開発中は本物のエラーでは出ないので、見た目はここで確かめてください。
+
+---
+
 ## 3つのテンプレートの対応表
 
 同じ構成・同じ画面で作ってあるので、1つ分かれば他も読めます。
@@ -289,6 +316,9 @@ base.html(型紙)                    index.html(中身)
 | データの形 | `models.py` | `internal/models/` | `main/models.py` |
 | 画面を返す | `routes.py` | `handlers/page.go` | `main/views.py` |
 | ログイン | `auth/routes.py` | `handlers/auth.go` | `accounts/views.py` |
+| ログイン試行制限 | `loginlimit.py` | `handlers/loginlimit.go` | `accounts/loginlimit.py` |
+| エラーページ | `errors.py` | `handlers/error.go` | `main/errors.py` |
+| 検索・SNS対応 | `seo.py` | `internal/view/page.go` | `main/context_processors.py` |
 | 型紙 | `base.html`(Jinja) | `base.html`(Go) | `base.html`(Django) |
 | 表を作る | `flask init-db` | 起動時に自動 | 起動時に自動 |
 | 表の形を変える | 作り直し(データ消滅) | 列の追加のみ可 | **データを保ったまま変更可** |

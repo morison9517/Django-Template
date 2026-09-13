@@ -33,6 +33,15 @@ from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods
 
+from accounts.loginlimit import (
+    clear_failures,
+    client_ip,
+    lock_remaining,
+    minutes_to_wait,
+    record_failure,
+    remaining_attempts,
+)
+
 # Djangoの User の、ユーザー名の最大文字数。
 USERNAME_MAX_LENGTH = 150
 
@@ -108,14 +117,22 @@ def login_view(request):
         username = request.POST.get("username", "").strip()
         password = request.POST.get("password", "")
 
-        # authenticate = 名前とパスワードが正しければユーザーを返し、
-        # 違えば None を返す。照合処理は自分で書かなくてよい。
-        user = authenticate(request, username=username, password=password)
+        # ▼ ★何度も失敗している相手は、照合する前に追い返す
+        #
+        #   仕組みは accounts/loginlimit.py。
+        #   パスワードを見る前に止めるのが要点。ここを照合の後ろに置くと、
+        #   締め出し中でも1回ずつ試させてしまい、時間をかければ
+        #   当てられる状態のままになる。
+        ip = client_ip(request)
 
-        # ★「ユーザー名が違います」と書かない理由
-        #   どの名前が実在するかを攻撃者に教えてしまうため、あえてぼかす。
-        if user is None:
-            messages.error(request, "ユーザー名またはパスワードが正しくありません。")
+        remaining = lock_remaining(ip)
+        if remaining is not None:
+            messages.error(
+                request,
+                "ログインの失敗が続いたため、一時的に制限しています。"
+                f"あと約{minutes_to_wait(remaining)}分お待ちください。",
+            )
+            # 429 = 「回数が多すぎる」を表す番号。
             return render(
                 request,
                 "login.html",
@@ -124,7 +141,57 @@ def login_view(request):
                     "username": username,
                     "next": request.POST.get("next", ""),
                 },
+                status=429,
             )
+
+        # authenticate = 名前とパスワードが正しければユーザーを返し、
+        # 違えば None を返す。照合処理は自分で書かなくてよい。
+        user = authenticate(request, username=username, password=password)
+
+        # ★「ユーザー名が違います」と書かない理由
+        #   どの名前が実在するかを攻撃者に教えてしまうため、あえてぼかす。
+        if user is None:
+            # 失敗を1回数える。5回目でこのアクセス元は15分締め出される。
+            record_failure(ip)
+
+            message = "ユーザー名またはパスワードが正しくありません。"
+            status = 200
+
+            # ★今の失敗で締め出しに達したかを、その場で確かめて伝える。
+            #
+            #   これが無いと、5回目は普通の「違います」だけが出て、
+            #   次にもう一度押したときに初めて締め出しを知ることになる。
+            #   利用者から見ると「急に入れなくなった」としか分からない。
+            reached = lock_remaining(ip)
+            if reached is not None:
+                message = (
+                    "ログインの失敗が続いたため、一時的に制限しました。"
+                    f"あと約{minutes_to_wait(reached)}分お待ちください。"
+                )
+                status = 429
+            else:
+                # ★残り回数を出す理由は loginlimit.py の remaining_attempts に。
+                #   残り2回以下になってから出す(最初から出すと不安にさせるだけ)。
+                left = remaining_attempts(ip)
+                if 0 < left <= 2:
+                    message += f"(あと{left}回失敗すると、しばらくログインできなくなります)"
+
+            messages.error(request, message)
+            return render(
+                request,
+                "login.html",
+                {
+                    "title": "ログイン",
+                    "username": username,
+                    "next": request.POST.get("next", ""),
+                },
+                status=status,
+            )
+
+        # ★成功したら失敗の記録を消す。
+        #   これが無いと、正しく入れた後も前の失敗が残り続け、
+        #   次に1回打ち間違えただけで締め出される。
+        clear_failures(ip)
 
         # login() がブラウザに「あなたは○番の人」というメモを持たせる。
         login(request, user)
