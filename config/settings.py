@@ -70,6 +70,18 @@ CSRF_TRUSTED_ORIGINS = [
     if origin.strip()
 ]
 
+# ★HTTPSにしたとき(.env に HTTPS_DOMAIN を書いたとき)は、そのドメインを
+#   上の2つに自動で足す。足し忘れると、HTTPSにした直後からフォームの送信が
+#   全部403で弾かれる(画面に理由が出ないので原因に辿り着きにくい)。
+HTTPS_DOMAIN = os.getenv("HTTPS_DOMAIN", "").strip()
+
+if HTTPS_DOMAIN:
+    if HTTPS_DOMAIN not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(HTTPS_DOMAIN)
+
+    if f"https://{HTTPS_DOMAIN}" not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(f"https://{HTTPS_DOMAIN}")
+
 # False にすると、ログイン関連のURLを登録しない(config/urls.py で使っている)。
 AUTH_ENABLED = _env_bool("AUTH_ENABLED", True)
 
@@ -240,6 +252,17 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # 本番用に1か所へ集めるときの置き場(docs/SETUP.md 参照)。
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# ★本番では、集めるときにファイル名へ「版の印」を付ける(config/storage.py)。
+#   これが無いと、CSSを直して出し直しても利用者の画面は古いままになる。
+#   開発中は付けない(保存のたびに名前が変わると確認しづらいため)。
+if not DEBUG:
+    STORAGES = {
+        # ↓ 利用者が上げたファイルの扱い。Djangoの標準のまま。
+        #   ★STORAGES を書くときは、標準のものも一緒に書かないと消えてしまう。
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "config.storage.VersionedStaticStorage"},
+    }
 
 
 # =============================================================================
