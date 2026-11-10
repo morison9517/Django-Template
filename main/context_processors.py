@@ -25,7 +25,7 @@ SITE_NAME = "Django Template Demo"
 # ★120文字前後に収めること。長いと検索結果で途中から切られる。
 # ★ページごとに変えたいときは、render(...) に "description" を渡す。
 SITE_DESCRIPTION = (
-    "Djangoのハッカソン用テンプレート。docker compose up だけで開発環境が立ち上がります。"
+    "DjangoのWebアプリ開発テンプレート。docker compose up だけで開発環境が立ち上がります。"
 )
 
 # OGP_IMAGE = SNSに貼ったときに出るサムネイル画像。

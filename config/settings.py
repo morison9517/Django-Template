@@ -137,7 +137,7 @@ TEMPLATES = [
         #   templates/ をプロジェクト直下にまとめているので、
         #   フロント担当は1か所だけ見ればよい。
         "DIRS": [BASE_DIR / "templates"],
-        # アプリごとの templates/ フォルダも探す(今回は使っていない)。
+        # アプリごとの templates/ フォルダも探す(このテンプレートでは使っていない)。
         "APP_DIRS": True,
         "OPTIONS": {
             # ★context_processors = 「全ページで自動的に使える情報」の一覧
